@@ -22,7 +22,7 @@ echo "[3] Existing application attempts to load missing plugin"
 echo
 
 echo "[4] Build only Bank Transfer plugin"
-make bank_transfer
+make build/plugins/bank_transfer.so
 echo
 
 echo "[5] Load the newly deployed plugin without rebuilding shop_app"

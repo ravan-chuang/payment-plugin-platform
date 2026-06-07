@@ -25,6 +25,7 @@ Payment and discount implementations are compiled as independent shared librarie
 
 ## Architecture
 
+### Checkout Flow
 ```text
    Cart Items
         |
@@ -54,15 +55,30 @@ Payment and discount implementations are compiled as independent shared librarie
         |
         v
    Write Transaction Log
+```
 
+### Runtime Plugin Loading
 
+```text
    Configuration Files
         |
         ├── discounts.conf
         └── plugins.conf
         |
         v
-   dlopen() -> dlsym() -> interface validation -> execution -> dlclose()
+   dlopen()
+        |
+        v
+   dlsym()
+        |
+        v
+   interface validation
+        |
+        v
+   execution
+        |
+        v
+   dlclose()
 ```
 
 ## Project Structure
@@ -149,7 +165,7 @@ Payment plugins are configured in plugins.conf:
 
     credit_card=enabled=./build/plugins/credit_card.so
     line_pay=enabled=./build/plugins/line_pay.so
-    paypal=disabled=./build/plugins/paypal.so
+    paypal=enabled=./build/plugins/paypal.so
     bank_transfer=enabled=./build/plugins/bank_transfer.so
 
 Discount plugins are configured in discounts.conf:
