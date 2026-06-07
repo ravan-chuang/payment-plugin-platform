@@ -18,7 +18,6 @@ echo
 echo "[1] Clean and rebuild project"
 make clean
 make
-make bank_transfer
 sed -i 's/paypal=enabled/paypal=disabled/' plugins.conf
 echo
 

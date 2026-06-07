@@ -1,47 +1,42 @@
-CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude
-LDFLAGS = -ldl
+CC := gcc
+CFLAGS := -Wall -Wextra -Iinclude
+PLUGIN_FLAGS := -Wall -Wextra -fPIC -shared -Iinclude
+LDLIBS := -ldl
 
-APP = shop_app
+APP := shop_app
 
-PAYMENT_PLUGIN_DIR = build/plugins
-DISCOUNT_PLUGIN_DIR = build/discounts
+PAYMENT_PLUGIN_DIR := build/plugins
+DISCOUNT_PLUGIN_DIR := build/discounts
 
-PAYMENT_PLUGINS = credit_card line_pay paypal
-DISCOUNT_PLUGINS = no_discount student_discount festival_discount
+PAYMENT_PLUGINS := credit_card line_pay paypal bank_transfer
+DISCOUNT_PLUGINS := no_discount student_discount festival_discount
 
-all: $(APP) payment_plugins discount_plugins
+PAYMENT_SO := $(addprefix $(PAYMENT_PLUGIN_DIR)/,$(addsuffix .so,$(PAYMENT_PLUGINS)))
+DISCOUNT_SO := $(addprefix $(DISCOUNT_PLUGIN_DIR)/,$(addsuffix .so,$(DISCOUNT_PLUGINS)))
+
+.RECIPEPREFIX := >
+
+.PHONY: all prepare payment_plugins discount_plugins clean
+
+all: prepare $(APP) payment_plugins discount_plugins
+
+prepare:
+>mkdir -p $(PAYMENT_PLUGIN_DIR) $(DISCOUNT_PLUGIN_DIR)
 
 $(APP): src/main.c include/payment_plugin.h include/discount_plugin.h
-	$(CC) $(CFLAGS) src/main.c -o $(APP) $(LDFLAGS)
+>$(CC) $(CFLAGS) src/main.c -o $(APP) $(LDLIBS)
 
-payment_plugins: $(PAYMENT_PLUGINS)
+payment_plugins: $(PAYMENT_SO)
 
-credit_card: plugins/credit_card.c include/payment_plugin.h
-	$(CC) -fPIC -shared plugins/credit_card.c -o $(PAYMENT_PLUGIN_DIR)/credit_card.so
+discount_plugins: $(DISCOUNT_SO)
 
-line_pay: plugins/line_pay.c include/payment_plugin.h
-	$(CC) -fPIC -shared plugins/line_pay.c -o $(PAYMENT_PLUGIN_DIR)/line_pay.so
+$(PAYMENT_PLUGIN_DIR)/%.so: plugins/%.c include/payment_plugin.h | prepare
+>$(CC) $(PLUGIN_FLAGS) $< -o $@
 
-paypal: plugins/paypal.c include/payment_plugin.h
-	$(CC) -fPIC -shared plugins/paypal.c -o $(PAYMENT_PLUGIN_DIR)/paypal.so
-
-bank_transfer: plugins/bank_transfer.c include/payment_plugin.h
-	$(CC) -fPIC -shared plugins/bank_transfer.c -o $(PAYMENT_PLUGIN_DIR)/bank_transfer.so
-
-discount_plugins: $(DISCOUNT_PLUGINS)
-
-no_discount: discounts/no_discount.c include/discount_plugin.h
-	$(CC) -fPIC -shared discounts/no_discount.c -o $(DISCOUNT_PLUGIN_DIR)/no_discount.so
-
-student_discount: discounts/student_discount.c include/discount_plugin.h
-	$(CC) -fPIC -shared discounts/student_discount.c -o $(DISCOUNT_PLUGIN_DIR)/student_discount.so
-
-festival_discount: discounts/festival_discount.c include/discount_plugin.h
-	$(CC) -fPIC -shared discounts/festival_discount.c -o $(DISCOUNT_PLUGIN_DIR)/festival_discount.so
+$(DISCOUNT_PLUGIN_DIR)/%.so: discounts/%.c include/discount_plugin.h | prepare
+>$(CC) $(PLUGIN_FLAGS) $< -o $@
 
 clean:
-	rm -f $(APP)
-	rm -f $(PAYMENT_PLUGIN_DIR)/*.so
-	rm -f $(DISCOUNT_PLUGIN_DIR)/*.so
-	rm -f transactions.log
+>rm -f $(APP)
+>rm -rf build
+>rm -f transactions.log
