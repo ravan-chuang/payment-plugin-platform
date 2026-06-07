@@ -1,0 +1,28 @@
+# Build outputs
+build/
+*.o
+*.so
+*.a
+*.out
+
+# Runtime-generated files
+transactions.log
+*.log
+
+# Debug files
+core
+core.*
+*.gch
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+*~
+*.swp
+
+# Temporary files
+tmp/
+*.tmp
+shop_app
+backups/
